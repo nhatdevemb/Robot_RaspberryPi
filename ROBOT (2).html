@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>TRÌNH ĐIỀU KHIỂN</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script type="text/javascript" language="javascript">
+        var max, at_OK;
+
+        function makeid() {
+            var text = "";
+            var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+            for (var i = 0; i < 5; i++)
+                text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+            return text;
+        }
+        // Create a client instance
+        var client = new Paho.MQTT.Client("broker.hivemq.com", 8000, makeid()); //brocker, cong,make id
+
+        // set callback handlers
+        client.onConnectionLost = onConnectionLost;
+        client.onMessageArrived = onMessageArrived;
+
+        var options = {
+            useSSL: false,
+            userName: "",
+            password: "",
+            onSuccess: onConnect,
+            onFailure: doFail
+        }
+
+
+        console.log("kết nối tới broker.hivemq.com:8000");
+        // connect the client
+        client.connect(options);
+
+        function doFail(e) {
+            console.log(e);
+        }
+
+        function onConnect() //sự kiên kết nối thành công
+        {
+            console.log("kết nối : OK");
+            client.subscribe("node_dt010132_data"); //đăng kí nhận dữ liệu từ topic
+            client.subscribe("node_dt010132_id"); //đăng kí nhận dữ liệu từ topic
+            client.subscribe("node_dt010132_stt"); //đăng kí nhận dữ liệu từ topic
+            client.subscribe("offline"); // đăng kí nhận dữ liệu tư topic offline
+        }
+
+        // called when the client loses its connection
+        function onConnectionLost(responseObject) {
+            if (responseObject.errorCode !== 0) {
+                console.log(responseObject.errorMessage);
+            }
+        }
+
+        // called when a message arrives
+        function onMessageArrived(message) {
+            console.log(message.destinationName + ":" + message.payloadString);
+            document.getElementById("tinnhan").innerHTML = "Tin nhắn từ node_dt010132: " + message.payloadString;
+
+        }
+
+        function public(topic, data) {
+            message = new Paho.MQTT.Message(data);
+            message.destinationName = topic;
+            client.send(message);
+        }
+    </script>
+    <style>
+        .b {
+            width: 150px;
+            height: 50px;
+            font-size: 21px;
+            color: #a5f704;
+            background-color: #ce3b1f;
+            border-radius: 10px;
+        }
+        
+        .t {
+            width: 150px;
+            height: 50px;
+            font-size: 21px;
+            color: #FFF;
+            background-color: #E61111;
+            border-radius: 10px;
+        }
+        
+        body {
+            background-image: url('https://img4.thuthuatphanmem.vn/uploads/2020/06/05/hinh-nen-cong-nghe-don-gian-ma-dep_103228946.jpg');
+            max-width: 100%;
+        }
+        
+        .wrap-title {
+            background-color: rgb(95 65 65);
+            color: yellow;
+            padding: 20px;
+            text-align: center;
+            margin: 5rem 0;
+            border-radius: 20px;
+        }
+        
+        table {
+            justify-content: center;
+            display: flex;
+        }
+        
+        table button {
+            background-color:
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="wrap-title">
+            <h1>TRÌNH ĐIỀU KHIỂN XE ROBOT</h1>
+            <p id="tinnhan">Tin nhắn từ esp8266: ... </p>
+        </div>
+
+        <table>
+            <tr>
+                <td></td>
+                <td><button class='b' onclick="public('node_dt010132_remote','tien')">TIẾN</button>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+
+                <td><button class='b' onclick="public('node_dt010132_remote','trai')">RẼ TRÁI</button>
+                </td>
+                <td><button class='b' onclick="public('node_dt010132_remote','dung')">STOP</button>
+                </td>
+                <td><button class='b' onclick="public('node_dt010132_remote','phai')">RẼ PHẢI</button>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><button class='b' onclick="public('node_dt010132_remote','lui')">LÙI</button>
+                </td>
+                <td></td>
+            </tr>
+
+        </table>
+    </div>
+
+</body>
+
+</html>
